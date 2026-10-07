@@ -1,0 +1,108 @@
+# Dua layanan yang harus hidup 24 jam, terpisah dari web app.
+#
+# SPEC section 2: gateway sengaja TIDAK digabung dengan web app. Kalau digabung,
+# tiap deploy ulang memutus sesi WhatsApp. Web app boleh mati-hidup sesukanya;
+# container di berkas ini tidak ikut restart.
+#
+# SPEC section 2.2: volume `evolution_instances` dan `pgdata` adalah barang paling
+# berharga di server ini. Kalau `evolution_instances` hilang, harus scan QR
+# ulang - dan itu memakai satu slot device lagi (section 16).
+
+name: dashboard-wa
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?wajib diisi di .env}
+      POSTGRES_DB: ${POSTGRES_DB:-dashboard_wa}
+      # Kolasi Indonesia tidak tersedia di image alpine; C.UTF-8 aman dan cepat.
+      POSTGRES_INITDB_ARGS: "--locale=C.UTF-8 --encoding=UTF8"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./ops/init-evolution-db.sql:/docker-entrypoint-initdb.d/10-evolution.sql:ro
+    ports:
+      # Hanya localhost. Postgres tidak boleh terekspos ke internet.
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wa} -d ${POSTGRES_DB:-dashboard_wa}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Gateway. Ganti ke WAHA kalau mau - lihat catatan di bawah berkas ini.
+  gateway:
+    # Namespace "atendai" yang beredar di banyak tutorial sudah menolak akses
+    # (pull access denied untuk SELURUH namespace, bukan cuma satu tag).
+    # Proyeknya pindah ke evoapicloud. Versi dipatok, bukan "latest": ini
+    # gateway yang hidup 24 jam dan memegang sesi WhatsApp - upgrade diam-diam
+    # saat container restart bisa memutus sesi dan memaksa scan QR ulang.
+    image: evoapicloud/evolution-api:v2.3.7
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      AUTHENTICATION_API_KEY: ${GATEWAY_API_KEY:?wajib diisi di .env}
+      SERVER_URL: ${GATEWAY_PUBLIC_URL:-http://localhost:8080}
+
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://${POSTGRES_USER:-wa}:${POSTGRES_PASSWORD}@db:5432/evolution
+      DATABASE_CONNECTION_CLIENT_NAME: evolution
+      # Simpan kredensial sesi. Tanpa ini, restart = scan QR ulang.
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+
+      # Cache lokal saja - satu komponen lagi (Redis) yang tidak perlu dijaga.
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+
+      # ---- webhook ke web app ----
+      WEBHOOK_GLOBAL_ENABLED: "true"
+      WEBHOOK_GLOBAL_URL: ${WEBHOOK_TARGET:-http://host.docker.internal:3000/api/webhook/evolution}
+      WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS: "false"
+      WEBHOOK_EVENTS_MESSAGES_UPSERT: "true"
+      WEBHOOK_EVENTS_MESSAGES_UPDATE: "true"
+      WEBHOOK_EVENTS_CONNECTION_UPDATE: "true"
+      WEBHOOK_EVENTS_QRCODE_UPDATED: "true"
+      # section 13 MENOLAK sync riwayat penuh. Jangan nyalakan yang ini.
+      WEBHOOK_EVENTS_CHATS_UPSERT: "false"
+      WEBHOOK_EVENTS_CONTACTS_UPSERT: "false"
+
+      # section 13: "Sync riwayat penuh saat scan QR" ditolak - BERBAHAYA.
+      # Menarik riwayat besar di awal adalah salah satu pola yang paling mudah kena flag.
+      DATABASE_SAVE_DATA_HISTORIC: "false"
+
+      LOG_LEVEL: ERROR
+      DEL_INSTANCE: "false"
+    volumes:
+      # section 2.2 volume persisten untuk credential sesi.
+      - evolution_instances:/evolution/instances
+    ports:
+      - "127.0.0.1:8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  pgdata:
+  evolution_instances:
+# ---------------------------------------------------------------------------
+# Mau pakai WAHA sebagai gantinya? Ganti service `gateway` dengan:
+#
+#   gateway:
+#     image: devlikeapro/waha:latest
+#     restart: unless-stopped
+#     environment:
+#       WHATSAPP_API_KEY: ${GATEWAY_API_KEY}
+#       WHATSAPP_HOOK_URL: ${WEBHOOK_TARGET}   # arahkan ke /api/webhook/waha
+#       WHATSAPP_HOOK_EVENTS: message,message.ack,message.revoked,session.status
+#       WHATSAPP_RESTART_ALL_SESSIONS: "true"
+#     volumes:
+#       - waha_sessions:/app/.sessions
+#     ports: ["127.0.0.1:3001:3000"]
+#
+# lalu di .env: GATEWAY_PROVIDER=waha
+# Sisa aplikasi tidak berubah sama sekali - lihat src/lib/gateway/index.ts.
+# ---------------------------------------------------------------------------

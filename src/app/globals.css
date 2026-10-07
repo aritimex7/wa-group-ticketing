@@ -1,0 +1,423 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   PAPER TRIAGE - sistem visual dashboard tiket
+   =============================================================================
+
+   Premis: layar ini ditatap 8 jam, bergantian siang-malam, oleh 4 orang yang
+   pekerjaannya membaca kalimat pendek orang lain dan bereaksi cepat. Jadi:
+
+     1. Ground-nya kertas hangat, bukan putih layar. Putih murni #FFF di ruangan
+        gelap jam 3 pagi menyakitkan; #FAF9F7 tidak.
+     2. Hierarki dibangun dari tipografi dan garis rambut, BUKAN dari kotak
+        bertumpuk. Tidak ada kartu ber-shadow. Baris, bukan kartu - supaya
+        densitas tetap tinggi meski gayanya lega.
+     3. Warna hanya untuk status. Kalau semua berwarna, tidak ada yang berwarna.
+     4. Angka waktu pakai monospace tabular. Timer adalah subjek utama layar ini,
+        dan angka yang bergeser-geser setiap detik tidak bisa dibaca sekilas.
+
+   Yang sengaja TIDAK dipakai, karena ini penanda desain generik:
+     - gradient sebagai dekorasi
+     - glassmorphism / backdrop-blur pada panel
+     - rounded-2xl + shadow-lg di setiap elemen
+     - emoji sebagai ikon
+     - warna aksen ungu-ke-biru
+     - semua teks Inter 14px dengan bobot sama rata
+   ============================================================================= */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ---------------------------------------------------------------- token: terang */
+:root {
+  color-scheme: light;
+
+  /* ground */
+  --paper: #faf9f7;
+  --surface: #ffffff;
+  --sunk: #f3f1ed;
+  --rule: #e4e0d9;
+  --rule-strong: #cfc9be;
+
+  /* tinta */
+  --ink: #1a1917;
+  --ink-muted: #57534b;
+  --ink-faint: #726d62;
+
+  /* aksen tunggal */
+  --accent: #1f5f4e;
+  --accent-hover: #17493c;
+  --accent-soft: #e8f0ec;
+  --on-accent: #f7faf8;
+
+  /* Status - setiap nilai di bawah sudah diukur >= 4.5:1 (WCAG AA teks kecil)
+     terhadap SEMUA ground yang mungkin: --paper, --surface, --sunk, dan ketiga
+     tint baris. Diukur, bukan dikira: versi pertama palet ini punya --ink-faint
+     2.79:1 - label mikro 10.5px yang praktis tidak terbaca sebagian orang.
+     Kalau mengubah salah satu warna, ukur ulang seluruh pasangannya. */
+  --st-open: #935a25;
+  --st-progress: #35569b;
+  --st-done: #1f5f4e;
+  --st-breach: #a63d3d;
+  --st-doubt: #7d6817;
+  --st-idle: #57534b;
+
+  /* latar tipis untuk baris yang perlu ditarik keluar */
+  --tint-breach: #fbf0ee;
+  --tint-doubt: #faf6e8;
+  --tint-mine: #eef4f1;
+
+  --focus: #1f5f4e;
+}
+
+/* ---------------------------------------------------------------- token: gelap
+   Bukan tema kedua - desain yang sama, ground-nya saja yang dibalik.
+   Near-black-nya hangat (#15140f), bukan biru, supaya keluarga "kertas" tetap
+   terasa dan mata tidak loncat saat shift berganti. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper: #15140f;
+  --surface: #1c1a15;
+  --sunk: #100f0b;
+  --rule: #302d26;
+  --rule-strong: #454138;
+
+  --ink: #edeae2;
+  --ink-muted: #b3ada0;
+  --ink-faint: #969084;
+
+  --accent: #5fb394;
+  --accent-hover: #74c4a6;
+  --accent-soft: #16302a;
+  --on-accent: #0e1a16;
+
+  --st-open: #d89a5a;
+  --st-progress: #8aa9e4;
+  --st-done: #5fb394;
+  --st-breach: #e08a80;
+  --st-doubt: #c9ae4e;
+  --st-idle: #b3ada0;
+
+  --tint-breach: #2a1c19;
+  --tint-doubt: #262009;
+  --tint-mine: #16241f;
+
+  --focus: #5fb394;
+}
+
+/* ---------------------------------------------------------------- tailwind theme */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+
+  --color-st-open: var(--st-open);
+  --color-st-progress: var(--st-progress);
+  --color-st-done: var(--st-done);
+  --color-st-breach: var(--st-breach);
+  --color-st-doubt: var(--st-doubt);
+  --color-st-idle: var(--st-idle);
+
+  --color-tint-breach: var(--tint-breach);
+  --color-tint-doubt: var(--tint-doubt);
+  --color-tint-mine: var(--tint-mine);
+
+  /* Stack sistem, bukan webfont.
+     Alasan: VPS ini dibatasi IP kantor dan bisa hidup tanpa internet keluar;
+     build tidak boleh bergantung pada unduhan font. Di Windows 11 ini jatuh ke
+     Segoe UI Variable + Cascadia Mono, dua-duanya bagus. Kalau nanti mau ganti
+     ke Soehne/Inter, cukup ubah dua baris ini. */
+  --font-sans:
+    "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, -apple-system,
+    BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    "Cascadia Mono", ui-monospace, "SF Mono", "Segoe UI Mono", Menlo, Consolas,
+    monospace;
+
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+}
+
+/* ---------------------------------------------------------------- dasar */
+@layer base {
+  * {
+    border-color: var(--rule);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    font-feature-settings: "kern" 1, "liga" 1, "cv05" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Angka apa pun di UI ini tidak boleh bergoyang lebarnya. */
+  input,
+  button,
+  table,
+  time,
+  output {
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.015em;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Scrollbar tipis - kolom antrean di-scroll terus, jangan sampai
+     scrollbar tebal bawaan memotong lebar baca. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--rule-strong);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* ---------------------------------------------------------------- primitif */
+@layer components {
+  /* Label mikro editorial: huruf kecil, spasi renggang, kapital.
+     Ini penanda gaya utama sistem - dipakai untuk kepala kolom dan label meta. */
+  .micro {
+    font-size: 10.5px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-feature-settings: "case" 1;
+  }
+
+  /* Angka tabular - timer, hitungan, median. */
+  .tnum {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "zero" 1;
+    letter-spacing: -0.01em;
+  }
+
+  /* Timer besar: subjek utama baris tiket. */
+  .timer {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 19px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  /* Garis rambut pembatas baris. Selalu 1px logis, tidak pernah menebal
+     di layar HiDPI. */
+  .rule-t {
+    border-top: 1px solid var(--rule);
+  }
+  .rule-b {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* Titik status - 6px, bukan pil warna. Warna tidak pernah jadi satu-satunya
+     penanda: selalu ada teks di sebelahnya (aksesibilitas buta warna). */
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    flex: none;
+    display: inline-block;
+  }
+
+  /* Pita 2px di tepi kiri baris. Hanya untuk keadaan yang butuh ditarik keluar
+     dari antrean - bukan hiasan setiap baris. */
+  .edge {
+    box-shadow: inset 2px 0 0 0 currentColor;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--rule-strong);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    transition:
+      background-color 90ms ease,
+      border-color 90ms ease,
+      color 90ms ease;
+    white-space: nowrap;
+  }
+  .btn:hover:not(:disabled) {
+    background: var(--sunk);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
+
+  .btn-quiet {
+    border-color: transparent;
+    background: transparent;
+    color: var(--ink-muted);
+  }
+  .btn-quiet:hover:not(:disabled) {
+    background: var(--sunk);
+    color: var(--ink);
+  }
+
+  .btn-danger {
+    border-color: var(--rule-strong);
+    color: var(--st-breach);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: var(--tint-breach);
+    border-color: var(--st-breach);
+  }
+
+  .field {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 14px;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  .field::placeholder {
+    color: var(--ink-faint);
+  }
+  .field:focus {
+    outline: 2px solid var(--focus);
+    outline-offset: -1px;
+    border-color: var(--focus);
+  }
+
+  /* Garis SLA: 2px, sepanjang lebar kolom timer. Mengisi dari kiri.
+     Lebih terbaca sekilas daripada persentase, dan tidak makan tempat. */
+  .sla-track {
+    height: 2px;
+    background: var(--rule);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .sla-fill {
+    height: 100%;
+    background: currentColor;
+    transition: width 1s linear;
+  }
+
+  /* Pesan yang sedang ditunjuk lewat tautan "membalas ...".
+     Tidak pakai JavaScript sama sekali: tautannya #pesan-<id>, penyorotnya
+     :target. Yang dibeli dengan itu bukan cuma sedikit kode - posisinya ikut
+     tersimpan di URL, jadi tombol Kembali membawa agen persis ke pesan yang
+     tadi dibaca, dan tautannya bisa disalin ke rekan.
+
+     Sorotannya menetap, tidak berkedip lalu hilang. Kalau utasnya panjang,
+     agen butuh waktu membaca pesan itu - penyorot yang keburu padam justru
+     memaksa mengklik ulang. */
+  .pesan {
+    /* Supaya tidak mendarat persis di balik kepala halaman yang menempel. */
+    scroll-margin-block: 12px;
+    border-radius: var(--radius-sm);
+    transition: background-color 220ms ease-out;
+  }
+  .pesan:target {
+    background: var(--tint-doubt);
+    box-shadow: 0 0 0 6px var(--tint-doubt);
+  }
+
+  /* Gelembung di halaman chat grup. Latarnya lewat variabel, BUKAN style inline
+     - gaya inline mengalahkan aturan apa pun di stylesheet, jadi versi inline
+     membuat .pesan:target di atas tidak pernah terlihat di halaman ini.
+     Kelasnya berspesifisitas lebih rendah daripada .pesan:target, jadi sorotan
+     menang saat pesannya sedang ditunjuk dan warna aslinya kembali setelah itu. */
+  .gelembung {
+    background: var(--gel-bg);
+  }
+}
+
+@layer utilities {
+  /* Panel yang bisa di-scroll sendiri tanpa memicu scroll halaman. */
+  .scroll-y {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

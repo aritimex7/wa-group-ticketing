@@ -1,0 +1,1 @@
+ALTER TABLE "groups" ADD COLUMN "monitor_decided_at" timestamp with time zone;

@@ -1,0 +1,73 @@
+# PostgreSQL untuk staging. HANYA database - tidak ada gateway di sini.
+#
+# Mesin ini adalah staging; production jalan di VPS lain. Berkas ini sengaja
+# TIDAK menyentuh apa pun milik `docker-compose.yml`: project name berbeda,
+# volume berbeda, port berbeda, nama database berbeda, role berbeda.
+#
+# Kenapa container padahal Postgres sudah ada di WSL. Cluster native di mesin
+# ini adalah Postgres 18.6 di port 5432 dan sudah dipakai `dashboard_wa`.
+# Production jalan 17.11. Staging butuh tiga hal yang tidak bisa diberikan
+# cluster itu sekaligus: port sendiri (5433), data directory sendiri, dan
+# versi 17 yang sama dengan production. Container memberi ketiganya.
+#
+# Gateway sengaja tidak ada. Staging tidak boleh punya jalan untuk mengirim
+# pesan WhatsApp sungguhan - lihat GATEWAY_URL dan INTERNAL_TICKER di
+# .env.staging.
+#
+# Cara menjalankan - dari DALAM WSL, karena docker ada di sana (daemon Docker
+# Desktop di Windows tidak jalan):
+#
+#   cd /mnt/d/proyek/wa-ticket-dashboard
+#   docker compose -f docker-compose.staging.yml --env-file .env.staging up -d
+#
+# --env-file WAJIB disebut. Tanpa itu Docker membaca `.env` (punya environment
+# kerja lokal) dan STAGING_POSTGRES_PASSWORD tidak akan ketemu, sehingga
+# compose berhenti dengan pesan jelas alih-alih menyalakan container setengah
+# benar.
+
+name: dashboard-wa-staging
+
+services:
+  db:
+    # Dipatok ke 17-alpine karena production terverifikasi jalan PostgreSQL
+    # 17.11 dengan image yang sama. Bukan `latest`, dan bukan 18 meskipun
+    # cluster lokal 18.6 - gunanya staging adalah meniru production, bukan
+    # meniru laptop. Catatan: tag ini tidak bisa diganti setelah volume
+    # terbentuk; naik ke 18 berarti bikin ulang volume atau pg_upgrade.
+    image: postgres:17-alpine
+    environment:
+      # Ditulis literal, BUKAN ${VAR}. Kalau pakai variabel lalu compose
+      # dijalankan tanpa --env-file, Docker membaca `.env` dan container
+      # staging akan lahir dengan POSTGRES_DB=dashboard_wa - persis kesalahan
+      # yang berkas ini ada untuk mencegahnya. Nilai literal membuatnya
+      # mustahil.
+      POSTGRES_DB: dashboard_wa_staging
+      POSTGRES_USER: wa_staging
+      # Nama variabelnya sengaja beda dari POSTGRES_PASSWORD di `.env` supaya
+      # tidak bisa saling tertukar. `:?` = compose gagal cepat kalau kosong.
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:?wajib diisi di .env.staging}
+      # Sama dengan docker-compose.yml. Kolasi yang berbeda bisa mengubah
+      # urutan ORDER BY pada kolom teks - staging harus mengurutkan persis
+      # seperti production.
+      POSTGRES_INITDB_ARGS: "--locale=C.UTF-8 --encoding=UTF8"
+    volumes:
+      # Volume milik project `dashboard-wa-staging`, jadi namanya lengkapnya
+      # dashboard-wa-staging_pgdata_staging. Tidak bertabrakan dengan `pgdata`
+      # milik project `dashboard-wa`.
+      - pgdata_staging:/var/lib/postgresql/data
+    ports:
+      # 5433 di host -> 5432 di dalam container. Hanya localhost.
+      # WSL2 meneruskan listener 127.0.0.1 ke localhost Windows, jadi app yang
+      # jalan di Windows bisa menghubunginya di 127.0.0.1:5433.
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wa_staging -d dashboard_wa_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # `restart: unless-stopped` sengaja TIDAK dipakai. Container gateway dan
+    # Postgres production harus hidup 24 jam; staging tidak. Nyalakan saat
+    # dipakai, biarkan mati saat tidak.
+
+volumes:
+  pgdata_staging:

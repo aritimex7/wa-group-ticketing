@@ -1,0 +1,68 @@
+# Gateway saja, untuk mesin yang Postgres-nya SUDAH jalan di WSL.
+#
+# Dipakai kalau tidak mau memasang Docker Desktop. Bedanya dengan
+# docker-compose.yml biasa:
+#
+#   - tidak menjalankan Postgres; memakai yang sudah ada di WSL
+#   - network_mode: host, supaya container bisa menyentuh 127.0.0.1:5432 milik
+#     WSL secara langsung, dan port 8080-nya otomatis diteruskan WSL ke
+#     localhost Windows
+#
+# Jalankan DARI DALAM WSL:
+#   cd /mnt/d/proyek/wa-ticket-dashboard
+#   sudo docker compose -f docker-compose.wsl.yml --env-file .env up -d
+#
+# CATATAN JARINGAN: WEBHOOK_TARGET harus memakai alamat IP Windows dilihat dari
+# WSL (mis. 172.17.112.1), bukan localhost - dari dalam WSL, "localhost" adalah
+# WSL itu sendiri, bukan Windows. Alamat itu BERUBAH tiap WSL restart. Cek ulang:
+#   wsl -e bash -lc "ip route show default | awk '{print \$3}'"
+
+name: dashboard-wa-gateway
+
+services:
+  gateway:
+    # Namespace "atendai" yang beredar di banyak tutorial sudah menolak akses
+    # (pull access denied untuk SELURUH namespace, bukan cuma satu tag).
+    # Proyeknya pindah ke evoapicloud. Versi dipatok, bukan "latest": ini
+    # gateway yang hidup 24 jam dan memegang sesi WhatsApp - upgrade diam-diam
+    # saat container restart bisa memutus sesi dan memaksa scan QR ulang.
+    image: evoapicloud/evolution-api:v2.3.7
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      AUTHENTICATION_API_KEY: ${GATEWAY_API_KEY:?wajib diisi di .env}
+      SERVER_URL: ${GATEWAY_PUBLIC_URL:-http://localhost:8080}
+
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      # Postgres milik WSL. network_mode host membuat 127.0.0.1 di sini
+      # menunjuk ke WSL, tempat Postgres sudah mendengarkan.
+      DATABASE_CONNECTION_URI: postgresql://${POSTGRES_USER:-wa}:${POSTGRES_PASSWORD}@127.0.0.1:5432/evolution
+      DATABASE_CONNECTION_CLIENT_NAME: evolution
+      # Simpan kredensial sesi. Tanpa ini, restart = scan QR ulang.
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      # SPEC section 13 MENOLAK sync riwayat penuh - BERBAHAYA, gampang kena flag.
+      DATABASE_SAVE_DATA_HISTORIC: "false"
+
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+
+      WEBHOOK_GLOBAL_ENABLED: "true"
+      WEBHOOK_GLOBAL_URL: ${WEBHOOK_TARGET}
+      WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS: "false"
+      WEBHOOK_EVENTS_MESSAGES_UPSERT: "true"
+      WEBHOOK_EVENTS_MESSAGES_UPDATE: "true"
+      WEBHOOK_EVENTS_CONNECTION_UPDATE: "true"
+      WEBHOOK_EVENTS_QRCODE_UPDATED: "true"
+      WEBHOOK_EVENTS_CHATS_UPSERT: "false"
+      WEBHOOK_EVENTS_CONTACTS_UPSERT: "false"
+
+      LOG_LEVEL: ERROR
+      DEL_INSTANCE: "false"
+    volumes:
+      # section 2.2 volume persisten untuk credential sesi. Kalau hilang, scan QR
+      # ulang - dan itu memakai satu slot device lagi (section 16).
+      - evolution_instances:/evolution/instances
+
+volumes:
+  evolution_instances:

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pratinjau desain — Meja Tiket</title>
+    <link rel="stylesheet" href="./app.css" />
+  </head>
+  <body>
+    <!-- ================= TOPBAR ================= -->
+    <header class="rule-b sticky top-0 z-30 flex h-13 items-center gap-6 bg-paper px-4">
+      <span class="micro text-ink" style="letter-spacing: 0.16em">MEJA&nbsp;TIKET</span>
+      <nav class="flex items-center gap-5 text-[13px]">
+        <a class="text-ink underline decoration-accent decoration-2 underline-offset-[6px]">Antrean</a>
+        <a class="text-ink-muted">Cari</a>
+        <a class="text-ink-muted">Leader</a>
+        <a class="text-ink-muted">Setelan</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-4">
+        <span class="inline-flex items-center gap-2 text-[12.5px] text-ink-muted">
+          <span class="dot" style="background: var(--st-done)"></span> Gateway tersambung
+        </span>
+        <span class="text-[13px] text-ink-muted">Ayu Lestari <span class="tnum ml-2 text-ink-faint">#dsp ay</span></span>
+        <button class="btn btn-quiet micro h-7 px-2" onclick="toggleTheme()">Terang</button>
+      </div>
+    </header>
+
+    <!-- ================= STRIP STATISTIK PRIBADI ================= -->
+    <div class="rule-b flex flex-wrap items-baseline gap-x-7 gap-y-1 bg-surface px-4 py-2">
+      <span class="micro">Hari ini</span>
+      <span class="inline-flex items-baseline gap-1.5"><span class="tnum text-[14px]">12</span><span class="text-[11.5px] text-ink-faint">ditangani</span></span></span>
+      <span class="inline-flex items-baseline gap-1.5"><span class="tnum text-[14px]" style="color: var(--st-breach)">1</span><span class="text-[11.5px] text-ink-faint">lewat SLA</span></span>
+    </div>
+
+    <!-- ================= TAB + DAFTAR ================= -->
+    <nav class="rule-b flex shrink-0 items-end gap-1 bg-paper px-4">
+      <a class="-mb-px flex items-baseline gap-2 border-b-2 border-accent px-3 py-2.5 text-ink">
+        <span class="micro" style="color: inherit">Open</span><span class="tnum text-[13px] text-ink">4</span>
+      </a>
+      <a class="-mb-px flex items-baseline gap-2 border-b-2 border-transparent px-3 py-2.5 text-ink-muted hover:border-rule-strong hover:text-ink">
+        <span class="micro" style="color: inherit">Progress</span><span class="tnum text-[13px] text-ink-faint">2</span>
+      </a>
+      <a class="-mb-px flex items-baseline gap-2 border-b-2 border-transparent px-3 py-2.5 text-ink-muted hover:border-rule-strong hover:text-ink">
+        <span class="micro" style="color: inherit">Done</span><span class="tnum text-[13px] text-ink-faint">2</span>
+      </a>
+      <span class="ml-auto py-3 text-[11.5px] text-ink-faint">paling lama menunggu di atas</span>
+    </nav>
+
+    <div class="scroll-y" style="height: 420px">
+          <a class="rule-b grid grid-cols-[64px_1fr] gap-3 px-4 py-2.5 hover:bg-sunk">
+            <div class="pt-px">
+              <div class="timer" style="color: var(--st-breach)">26:41</div>
+              <div class="sla-track mt-1.5" style="color: var(--st-breach)"><div class="sla-fill" style="width: 100%"></div></div>
+            </div>
+            <div class="min-w-0 md:flex md:items-start md:gap-6">
+              <div class="min-w-0 md:flex-1">
+                <div class="flex items-baseline gap-2">
+                  <span class="truncate text-[14.5px] font-semibold leading-tight">PT Anugerah Jaya</span>
+                  <span class="micro shrink-0 text-ink-faint">Retail</span>
+                </div>
+                <p class="mt-1 truncate text-[13px] text-ink-muted"><span class="text-ink">Budi Santoso</span><span class="text-ink-faint"> &middot; </span>tolong dibantu cek ya, invoice bulan lalu nomor INV-2291 belum masuk dan tembusannya juga belum kami terima</p>
+              </div>
+              <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 empty:mt-0 md:mt-0.5 md:shrink-0 md:flex-col md:items-end md:gap-y-1.5">
+                <span class="inline-flex items-center gap-1.5 text-[11.5px] leading-none" style="color: var(--st-idle)"><span class="dot" style="background: var(--st-idle)"></span>1 tiket lain terbuka di grup ini</span>
+              </div>
+            </div>
+          </a>
+          <a class="rule-b grid grid-cols-[64px_1fr] gap-3 px-4 py-2.5 hover:bg-sunk" style="background: var(--tint-doubt)">
+            <div class="pt-px">
+              <div class="timer" style="color: var(--st-open)">18:03</div>
+              <div class="sla-track mt-1.5" style="color: var(--st-open)"><div class="sla-fill" style="width: 100%"></div></div>
+            </div>
+            <div class="min-w-0 md:flex md:items-start md:gap-6">
+              <div class="min-w-0 md:flex-1">
+                <div class="flex items-baseline gap-2">
+                  <span class="truncate text-[14.5px] font-semibold leading-tight">Koperasi Bina Usaha</span>
+                  <span class="micro shrink-0 text-ink-faint">Koperasi</span>
+                </div>
+                <p class="mt-1 truncate text-[13px] text-ink-muted"><span class="text-ink">Joko Prasetyo</span><span class="text-ink-faint"> &middot; </span>Sudah bu, kemarin lewat @6281100000000 juga sudah dikabari soal laporan koperasi bulan ini</p>
+              </div>
+              <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 empty:mt-0 md:mt-0.5 md:shrink-0 md:flex-col md:items-end md:gap-y-1.5">
+                <span class="inline-flex items-center gap-1.5 text-[11.5px] leading-none" style="color: var(--st-doubt)"><span class="dot" style="background: var(--st-doubt)"></span>Mungkin bukan untuk kita</span>
+              </div>
+            </div>
+          </a>
+          <a class="rule-b grid grid-cols-[64px_1fr] gap-3 px-4 py-2.5 hover:bg-sunk">
+            <div class="pt-px">
+              <div class="timer" style="color: var(--st-open)">13:22</div>
+              <div class="sla-track mt-1.5" style="color: var(--st-open)"><div class="sla-fill" style="width: 89%"></div></div>
+            </div>
+            <div class="min-w-0 md:flex md:items-start md:gap-6">
+              <div class="min-w-0 md:flex-1">
+                <div class="flex items-baseline gap-2">
+                  <span class="truncate text-[14.5px] font-semibold leading-tight">Toko Sinar Abadi</span>
+                  <span class="micro shrink-0 text-ink-faint">Retail</span>
+                </div>
+                <p class="mt-1 truncate text-[13px] text-ink-muted"><span class="text-ink">Rina Kartika</span><span class="text-ink-faint"> &middot; </span>stok barang kode A-119 masih ada? klien saya nanya terus dari kemarin, katanya butuh 40 unit</p>
+              </div>
+              <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 empty:mt-0 md:mt-0.5 md:shrink-0 md:flex-col md:items-end md:gap-y-1.5"></div>
+            </div>
+          </a>
+          <a class="rule-b grid grid-cols-[64px_1fr] gap-3 px-4 py-2.5 hover:bg-sunk">
+            <div class="pt-px">
+              <div class="timer" style="color: var(--ink)">03:07</div>
+              <div class="sla-track mt-1.5" style="color: var(--ink)"><div class="sla-fill" style="width: 21%"></div></div>
+            </div>
+            <div class="min-w-0 md:flex md:items-start md:gap-6">
+              <div class="min-w-0 md:flex-1">
+                <div class="flex items-baseline gap-2">
+                  <span class="truncate text-[14.5px] font-semibold leading-tight">CV Mitra Sentosa</span>
+                  <span class="micro shrink-0 text-ink-faint">Distribusi</span>
+                </div>
+                <p class="mt-1 truncate text-[13px] text-ink-muted"><span class="text-ink">Hendra Wijaya</span><span class="text-ink-faint"> &middot; </span>pengiriman ke Surabaya hari ini jadi berangkat?</p>
+              </div>
+              <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 empty:mt-0 md:mt-0.5 md:shrink-0 md:flex-col md:items-end md:gap-y-1.5">
+                <span class="inline-flex items-center gap-1.5 text-[11.5px] leading-none" style="color: var(--st-idle)"><span class="dot" style="background: var(--st-idle)"></span>1 tiket lain terbuka di grup ini</span>
+              </div>
+            </div>
+          </a>
+    </div>
+
+    <!-- ================= HALAMAN TIKET ================= -->
+    <div class="flex" style="border-top: 8px solid var(--sunk)">
+      <div class="flex min-w-0 flex-1 flex-col">
+        <header class="rule-b bg-surface px-5 py-3">
+          <div class="flex items-baseline gap-3">
+            <span class="text-[13px] text-ink-muted">← Antrean</span>
+            <span class="tnum text-[12px] text-ink-faint">tiket #124</span>
+          </div>
+          <div class="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 class="text-[22px] leading-tight">PT Anugerah Jaya</h1>
+            <span class="micro text-ink-faint">Retail</span>
+            <span class="btn ml-auto h-7 text-[12.5px]">Lihat chat grup</span>
+          </div>
+          <p class="mt-1 text-[12.5px] text-ink-muted">Dipicu oleh mention dari <span class="text-ink">Budi Santoso</span> pukul <span class="tnum">09.14</span></p>
+        </header>
+
+        <!-- utas transkrip -->
+        <ol class="px-5 py-4">
+          <li class="relative first:mt-0">
+            <div class="flex items-baseline gap-3">
+              <span class="micro" style="color: var(--ink)">Budi Santoso</span>
+              <time class="tnum ml-auto shrink-0 text-[11.5px] text-ink-faint">08.46</time>
+            </div>
+            <p class="mt-1 text-[13.5px] leading-relaxed">Pagi, invoice bulan lalu nomor INV-2291 kok belum masuk ya?</p>
+          </li>
+          <li class="relative mt-4">
+            <div class="flex items-baseline gap-3">
+              <span class="micro" style="color: var(--ink)">Sari Wulandari</span>
+              <time class="tnum ml-auto shrink-0 text-[11.5px] text-ink-faint">08.49</time>
+            </div>
+            <p class="mt-1 border-l border-rule pl-2.5 text-[12.5px] text-ink-faint">Pagi, invoice bulan lalu nomor INV-2291 kok belum…</p>
+            <p class="mt-1 text-[13.5px] leading-relaxed">Betul pak, saya juga belum terima tembusannya</p>
+          </li>
+          <li class="relative -ml-3 mt-4 border-l-2 pl-3" style="border-color: var(--accent)">
+            <div class="flex items-baseline gap-3">
+              <span class="micro" style="color: var(--accent)">Ayu Lestari</span>
+              <time class="tnum ml-auto shrink-0 text-[11.5px] text-ink-faint">08.52</time>
+            </div>
+            <p class="mt-1 text-[13.5px] leading-relaxed">Baik bu, kami cek dulu ya. Mohon ditunggu.
+
+#dsp ay</p>
+          </li>
+          <li class="relative mt-4">
+            <div class="flex items-baseline gap-3">
+              <span class="micro" style="color: var(--ink)">Budi Santoso</span>
+              <time class="tnum ml-auto shrink-0 text-[11.5px] text-ink-faint">09.14</time>
+            </div>
+            <p class="mt-1 text-[13.5px] leading-relaxed">@6281100… tolong dibantu cek ya</p>
+          </li>
+        </ol>
+
+        <!-- kotak balas -->
+        <div class="rule-t bg-surface">
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 pt-3">
+            <span class="micro text-ink-faint">Membalas ke grup</span>
+            <strong class="text-[16px] font-semibold tracking-[-0.015em]">PT Anugerah Jaya</strong>
+            <span class="inline-flex items-center gap-1.5 text-[12px]" style="color: var(--st-open)">
+              <span class="dot" style="background: var(--st-open)"></span> grup berbeda dari tiket sebelumnya
+              <span class="ml-1 underline underline-offset-2">paham</span>
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 px-5 pt-2.5">
+            <span class="btn btn-quiet h-6 px-2 text-[12px]">On check</span>
+            <span class="btn btn-quiet h-6 px-2 text-[12px]">Minta nomor</span>
+            <span class="btn btn-quiet h-6 px-2 text-[12px]">Sudah diproses</span>
+          </div>
+          <div class="px-5 pt-2.5">
+            <textarea class="field min-h-[84px] resize-y" placeholder="Ketik balasan… tanda tangan #dsp ay disisipkan otomatis"></textarea>
+          </div>
+          <fieldset class="px-5 pt-2.5">
+            <legend class="micro">1 tiket lain terbuka dari grup ini — ikut ditutup?</legend>
+            <label class="mt-1.5 flex items-baseline gap-2 text-[12.5px]">
+              <input type="checkbox" class="mt-0.5" />
+              <span class="text-ink-muted"><span class="text-ink">Sari Wulandari</span> · PO baru sudah saya kirim ke email ya</span>
+            </label>
+          </fieldset>
+          <div class="flex flex-wrap items-center gap-2 px-5 py-3">
+            <button class="btn btn-primary">Kirim &amp; selesai</button>
+            <button class="btn">Kirim saja</button>
+            <button class="btn">On check</button>
+            <span class="mx-1 h-5 w-px bg-rule"></span>
+            <button class="btn">Tandai selesai</button>
+            <button class="btn btn-danger ml-auto">Bukan untuk kami</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="hidden w-[276px] shrink-0 border-l border-rule bg-paper xl:block">
+        <div class="px-4 py-4">
+          <h2 class="micro">Jam berjalan</h2>
+          <div class="mt-2 space-y-3">
+            <div>
+              <p class="text-[11.5px] text-ink-faint">Balasan pertama</p>
+              <div class="timer" style="color: var(--st-breach)">26:41</div>
+              <div class="sla-track mt-1.5" style="color: var(--st-breach)"><div class="sla-fill" style="width: 100%"></div></div>
+              <p class="mt-1 text-[11.5px] text-ink-faint">target 15 menit</p>
+            </div>
+            <div>
+              <p class="text-[11.5px] text-ink-faint">Tuntas</p>
+              <div class="timer">26:41</div>
+              <div class="sla-track mt-1.5" style="color: var(--ink)"><div class="sla-fill" style="width: 22%"></div></div>
+              <p class="mt-1 text-[11.5px] text-ink-faint">target 120 menit</p>
+            </div>
+          </div>
+
+          <h2 class="micro mt-6">Catatan serah terima</h2>
+          <textarea class="field mt-2 min-h-[72px] resize-y text-[12.5px]" placeholder="Yang perlu diketahui shift berikutnya…"></textarea>
+
+          <h2 class="micro mt-6">Riwayat</h2>
+          <ol class="mt-2 space-y-1.5">
+            <li class="flex items-baseline gap-2 text-[12px]"><time class="tnum shrink-0 text-ink-faint">09.14</time><span class="text-ink-muted">tiket dibuat</span></li>
+            <li class="flex items-baseline gap-2 text-[12px]"><time class="tnum shrink-0 text-ink-faint">09.15</time><span class="text-ink-muted">diambil<span class="text-ink"> · Ayu Lestari</span></span></li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      function toggleTheme() {
+        const el = document.documentElement;
+        const next = el.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        el.setAttribute("data-theme", next);
+        document.querySelector("header button").textContent = next === "dark" ? "Gelap" : "Terang";
+      }
+    </script>
+  </body>
+</html>

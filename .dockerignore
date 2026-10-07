@@ -1,0 +1,12 @@
+node_modules
+.next
+.next-staging
+.git
+.env
+.env.local
+.env.staging
+var
+evolution_instances
+docs/screenshots
+*.log
+*.tsbuildinfo

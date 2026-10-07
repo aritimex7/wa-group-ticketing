@@ -1,0 +1,18 @@
+node_modules/
+.next/
+.next-staging/
+.env
+.env.local
+.env.staging
+next-env.d.ts
+*.tsbuildinfo
+
+# Fase 0: dump payload mentah — berisi isi chat klien. JANGAN di-commit.
+var/raw/
+var/*.log
+
+# Volume persisten gateway (credential sesi WhatsApp). JANGAN di-commit.
+evolution_instances/
+
+# pratinjau desain statis (bukan bagian aplikasi)
+.preview/app.css

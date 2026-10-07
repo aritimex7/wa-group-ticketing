@@ -1,0 +1,60 @@
+# Demo mode: the full app with sample data and a mock WhatsApp gateway.
+# No real WhatsApp account is involved and no message ever leaves your machine.
+#
+#   docker compose -f docker-compose.demo.yml up --build
+#
+# Then open http://localhost:3000 (set DEMO_PORT to use another port) and sign in as `rio` (leader) or `ayu` (agent),
+# password `rahasia123`.
+
+name: wa-group-ticketing-demo
+
+x-app-env: &app-env
+  WA_SELF_PN: "628110000000"
+  WA_SELF_LID: "199900000000001"
+  GATEWAY_URL: http://gateway:8099
+  GATEWAY_INSTANCE: demo
+  GATEWAY_API_KEY: demo-key
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: wa
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: dashboard_wa
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wa -d dashboard_wa"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Mock of the Evolution API: accepts sends and echoes them back as webhooks.
+  gateway:
+    image: node:22-alpine
+    working_dir: /mock
+    command: ["node", "gateway-tiruan.mjs"]
+    volumes:
+      - ./scripts/gateway-tiruan.mjs:/mock/gateway-tiruan.mjs:ro
+    environment:
+      <<: *app-env
+      MOCK_BIND_HOST: 0.0.0.0
+      WEBHOOK_TARGET: http://app:3000/api/webhook/evolution
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+    environment:
+      <<: *app-env
+      DATABASE_URL: postgresql://wa:demo@db:5432/dashboard_wa
+      AUTH_SECRET: demo-only-secret-change-me-before-real-use-0123456789
+      GATEWAY_PROVIDER: evolution
+      FASE0_DUMP: "off"
+      INTERNAL_TICKER: "on"
+      SEED_PASSWORD: rahasia123
+      DEMO_SEED: "true"
+    ports:
+      - "127.0.0.1:${DEMO_PORT:-3000}:3000"
